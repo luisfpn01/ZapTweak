@@ -3,8 +3,8 @@ TARGET = iphone:clang:16.0:15.0
 FINALPACKAGE = 1
 DEBUG = 0
 
-# No container Theos, o SDK está em $THEOS/sdk
-# Não precisa setar THEOS_DEVICE_IP para build only
+# THEOS vem do ENV (setado no step "Install Theos")
+# Não precisa setar aqui
 
 include $(THEOS)/makefiles/common.mk
 
