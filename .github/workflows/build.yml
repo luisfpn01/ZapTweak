@@ -13,7 +13,7 @@ jobs:
       packages: write
 
     container:
-      image: ghcr.io/theos/theos:latest
+      image: theos/theos:latest
       options: --user root
 
     steps:
