@@ -2,12 +2,18 @@ name: Build Tweak
 
 on:
   push:
-    branches: [main, master]
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-latest
+
     permissions:
       contents: write
       packages: write
@@ -16,28 +22,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Theos + ldid
+      - name: Install Theos dependencies
         run: |
-          # Clona Theos para pasta temporária
+          brew install ldid xz
+
+      - name: Install Theos
+        run: |
           THEOS_DIR="$RUNNER_TEMP/theos"
-          git clone --depth 1 https://github.com/theos/theos.git "$THEOS_DIR"
-          brew install ldid
-          # Exporta para os próximos steps
-          echo "THEOS=$THEOS_DIR" >> $GITHUB_ENV
+
+          git clone \
+            --depth 1 \
+            --recurse-submodules \
+            --shallow-submodules \
+            https://github.com/theos/theos.git \
+            "$THEOS_DIR"
+
+          echo "THEOS=$THEOS_DIR" >> "$GITHUB_ENV"
+
+          echo "Theos instalado em: $THEOS_DIR"
+
+          test -f "$THEOS_DIR/vendor/dm.pl/dm.pl"
 
       - name: Build package
         run: |
-          make package FINALPACKAGE=1
+          make clean package FINALPACKAGE=1
+
+      - name: List packages
+        run: |
+          find packages -type f -name "*.deb" -print
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: ZapTweak-deb
-          path: .theos/packages/*.deb
+          path: packages/*.deb
+          if-no-files-found: error
 
-      - name: Create Release (on tag)
+      - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: .theos/packages/*.deb
+          files: packages/*.deb
           generate_release_notes: true
