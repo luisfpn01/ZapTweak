@@ -1,0 +1,10 @@
+Package: com.luisfpn01.zaptweak
+Name: ZapTweak
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Maintainer: luisfpn01 <luisfpn01@users.noreply.github.com>
+Description: ZapTweak
+Depends: mobilesubstrate, firmware (>= 15.0)
+Section: Tweaks
+Author: luisfpn01
+Homepage: https://github.com/luisfpn01/ZapTweak
