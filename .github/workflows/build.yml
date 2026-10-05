@@ -13,7 +13,7 @@ jobs:
       packages: write
 
     env:
-      THEOS: ${{ runner.temp }}/theos   # ou $HOME/theos
+      THEOS: $RUNNER_TEMP/theos   # ← variável de ambiente nativa do runner
 
     steps:
       - name: Checkout
@@ -21,9 +21,7 @@ jobs:
 
       - name: Install Theos + ldid
         run: |
-          # Clona Theos para pasta writable
           git clone --depth 1 https://github.com/theos/theos.git "${THEOS}"
-          # ldid via Homebrew
           brew install ldid
 
       - name: Build package
