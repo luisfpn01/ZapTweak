@@ -12,12 +12,13 @@ jobs:
       contents: write
       packages: write
 
+    container:
+      image: ghcr.io/theos/theos:latest
+      options: --user root
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Theos
-        uses: rpetrich/theos-action@v1
 
       - name: Build package
         run: |
