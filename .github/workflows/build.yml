@@ -7,18 +7,27 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     permissions:
       contents: write
       packages: write
 
-    container:
-      image: theos/theos:latest
-      options: --user root
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install Theos + ldid
+        run: |
+          brew install theos ldid
+          # Detecta path do Theos (Apple Silicon vs Intel)
+          if [ -d "/opt/homebrew/opt/theos/libexec/theos" ]; then
+            echo "THEOS=/opt/homebrew/opt/theos/libexec/theos" >> $GITHUB_ENV
+          elif [ -d "/usr/local/opt/theos/libexec/theos" ]; then
+            echo "THEOS=/usr/local/opt/theos/libexec/theos" >> $GITHUB_ENV
+          else
+            echo "❌ Theos not found after brew install"
+            exit 1
+          fi
 
       - name: Build package
         run: |
