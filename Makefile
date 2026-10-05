@@ -3,8 +3,8 @@ TARGET = iphone:clang:16.0:15.0
 FINALPACKAGE = 1
 DEBUG = 0
 
-export THEOS_DEVICE_IP = localhost
-export THEOS_DEVICE_PORT = 22
+# No container Theos, o SDK está em $THEOS/sdk
+# Não precisa setar THEOS_DEVICE_IP para build only
 
 include $(THEOS)/makefiles/common.mk
 
@@ -15,6 +15,5 @@ ZapTweak_FRAMEWORKS = UIKit Foundation
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-# Hook para instalador (opcional)
 after-install::
 	install.exec "killall -9 WhatsApp"
