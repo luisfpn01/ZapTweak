@@ -159,4 +159,3 @@ jobs:
         with:
           files: packages/*.deb
           generate_release_notes: true
-```
