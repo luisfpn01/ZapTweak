@@ -13,7 +13,7 @@ jobs:
       packages: write
 
     env:
-      THEOS: /opt/theos
+      THEOS: ${{ runner.temp }}/theos   # ou $HOME/theos
 
     steps:
       - name: Checkout
@@ -21,9 +21,9 @@ jobs:
 
       - name: Install Theos + ldid
         run: |
-          # Theos não está no Homebrew — clona direto
-          git clone --depth 1 https://github.com/theos/theos.git /opt/theos
-          # ldid sim está no Homebrew
+          # Clona Theos para pasta writable
+          git clone --depth 1 https://github.com/theos/theos.git "${THEOS}"
+          # ldid via Homebrew
           brew install ldid
 
       - name: Build package
