@@ -1,3 +1,4 @@
+```yaml
 name: Build Tweak
 
 on:
@@ -19,13 +20,22 @@ jobs:
       packages: write
 
     steps:
+      # ------------------------------------------------------------
+      # Checkout do projeto
+      # ------------------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Theos dependencies
+      # ------------------------------------------------------------
+      # Dependências necessárias pelo Theos
+      # ------------------------------------------------------------
+      - name: Install dependencies
         run: |
           brew install ldid xz
 
+      # ------------------------------------------------------------
+      # Instala o Theos completo, incluindo dm.pl e submódulos
+      # ------------------------------------------------------------
       - name: Install Theos
         run: |
           THEOS_DIR="$RUNNER_TEMP/theos"
@@ -39,28 +49,115 @@ jobs:
 
           echo "THEOS=$THEOS_DIR" >> "$GITHUB_ENV"
 
-          echo "Theos instalado em: $THEOS_DIR"
+          echo "Theos instalado em:"
+          echo "$THEOS_DIR"
 
+          echo "Verificando dm.pl..."
           test -f "$THEOS_DIR/vendor/dm.pl/dm.pl"
 
+      # ------------------------------------------------------------
+      # Instala o SDK patched do iOS 16.5
+      # ------------------------------------------------------------
+      - name: Install iOS 16.5 SDK
+        run: |
+          SDK_REPO="$RUNNER_TEMP/theos-sdks"
+
+          git clone \
+            --depth 1 \
+            https://github.com/theos/sdks.git \
+            "$SDK_REPO"
+
+          mkdir -p "$THEOS/sdks"
+
+          cp -R \
+            "$SDK_REPO/iPhoneOS16.5.sdk" \
+            "$THEOS/sdks/iPhoneOS16.5.sdk"
+
+          echo "SDKs disponíveis:"
+          ls -la "$THEOS/sdks"
+
+          echo "Verificando SDK 16.5..."
+          test -d "$THEOS/sdks/iPhoneOS16.5.sdk"
+
+      # ------------------------------------------------------------
+      # Informações para diagnóstico
+      # ------------------------------------------------------------
+      - name: Build environment
+        run: |
+          echo "THEOS=$THEOS"
+          echo ""
+
+          echo "Xcode:"
+          xcodebuild -version
+
+          echo ""
+          echo "Clang:"
+          clang --version
+
+          echo ""
+          echo "SDKs do Theos:"
+          ls -la "$THEOS/sdks"
+
+      # ------------------------------------------------------------
+      # Limpa compilação antiga
+      # ------------------------------------------------------------
+      - name: Clean
+        run: |
+          make clean || true
+
+      # ------------------------------------------------------------
+      # Compila
+      #
+      # SDKVERSION=16.5 força o SDK existente.
+      # TARGET:
+      #   16.5 = SDK usado para compilar
+      #   16.0 = versão mínima do iOS
+      # ------------------------------------------------------------
       - name: Build package
         run: |
-          make clean package FINALPACKAGE=1
+          make package \
+            FINALPACKAGE=1 \
+            SDKVERSION=16.5 \
+            TARGET=iphone:clang:16.5:16.0
 
-      - name: List packages
+      # ------------------------------------------------------------
+      # Procura o pacote criado
+      # ------------------------------------------------------------
+      - name: Find package
         run: |
-          find packages -type f -name "*.deb" -print
+          echo "Pacotes gerados:"
 
-      - name: Upload .deb artifact
+          find . \
+            -type f \
+            -name "*.deb" \
+            -print
+
+          if ! find packages -maxdepth 1 -type f -name "*.deb" | grep -q .; then
+            echo "ERRO: nenhum pacote .deb encontrado."
+            exit 1
+          fi
+
+      # ------------------------------------------------------------
+      # Salva o .deb no GitHub Actions
+      # ------------------------------------------------------------
+      - name: Upload DEB artifact
         uses: actions/upload-artifact@v4
         with:
           name: ZapTweak-deb
           path: packages/*.deb
           if-no-files-found: error
 
+      # ------------------------------------------------------------
+      # Cria GitHub Release quando fizer push de tag v*
+      #
+      # Exemplo:
+      # git tag v1.0.0
+      # git push origin v1.0.0
+      # ------------------------------------------------------------
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: packages/*.deb
           generate_release_notes: true
+```
