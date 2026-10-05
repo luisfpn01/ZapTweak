@@ -12,17 +12,18 @@ jobs:
       contents: write
       packages: write
 
-    env:
-      THEOS: $RUNNER_TEMP/theos   # ← variável de ambiente nativa do runner
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install Theos + ldid
         run: |
-          git clone --depth 1 https://github.com/theos/theos.git "${THEOS}"
+          # Clona Theos para pasta temporária
+          THEOS_DIR="$RUNNER_TEMP/theos"
+          git clone --depth 1 https://github.com/theos/theos.git "$THEOS_DIR"
           brew install ldid
+          # Exporta para os próximos steps
+          echo "THEOS=$THEOS_DIR" >> $GITHUB_ENV
 
       - name: Build package
         run: |
