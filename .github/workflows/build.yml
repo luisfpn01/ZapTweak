@@ -12,22 +12,19 @@ jobs:
       contents: write
       packages: write
 
+    env:
+      THEOS: /opt/theos
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install Theos + ldid
         run: |
-          brew install theos ldid
-          # Detecta path do Theos (Apple Silicon vs Intel)
-          if [ -d "/opt/homebrew/opt/theos/libexec/theos" ]; then
-            echo "THEOS=/opt/homebrew/opt/theos/libexec/theos" >> $GITHUB_ENV
-          elif [ -d "/usr/local/opt/theos/libexec/theos" ]; then
-            echo "THEOS=/usr/local/opt/theos/libexec/theos" >> $GITHUB_ENV
-          else
-            echo "❌ Theos not found after brew install"
-            exit 1
-          fi
+          # Theos não está no Homebrew — clona direto
+          git clone --depth 1 https://github.com/theos/theos.git /opt/theos
+          # ldid sim está no Homebrew
+          brew install ldid
 
       - name: Build package
         run: |
